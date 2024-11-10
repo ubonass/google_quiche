@@ -1,3 +1,6 @@
 [submodule "google_url"]
 	path = google_url
 	url = https://github.com/ubonass/google_url.git
+[submodule "quiche"]
+	path = quiche
+	url = https://github.com/ubonass/quiche.git
