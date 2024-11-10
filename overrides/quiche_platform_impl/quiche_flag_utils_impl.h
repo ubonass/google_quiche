@@ -1,0 +1,6 @@
+#ifndef QUICHE_OVERRIDES_QUICHE_PLATFORM_IMPL_QUICHE_FLAG_UTILS_IMPL_H_
+#define QUICHE_OVERRIDES_QUICHE_PLATFORM_IMPL_QUICHE_FLAG_UTILS_IMPL_H_
+
+#include "quiche/common/platform/default/quiche_platform_impl/quiche_flag_utils_impl.h"
+
+#endif  // QUICHE_OVERRIDES_QUICHE_PLATFORM_IMPL_QUICHE_FLAG_UTILS_IMPL_H_

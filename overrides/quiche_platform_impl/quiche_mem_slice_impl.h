@@ -1,0 +1,6 @@
+#ifndef QUICHE_OVERRIDES_QUICHE_PLATFORM_IMPL_QUICHE_MEM_SLICE_IMPL_H_
+#define QUICHE_OVERRIDES_QUICHE_PLATFORM_IMPL_QUICHE_MEM_SLICE_IMPL_H_
+
+#include "quiche/common/platform/default/quiche_platform_impl/quiche_mem_slice_impl.h"
+
+#endif  // QUICHE_OVERRIDES_QUICHE_PLATFORM_IMPL_QUICHE_MUTEX_IMPL_H_
