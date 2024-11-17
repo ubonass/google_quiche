@@ -14,7 +14,7 @@
         "CMAKE_CXX_COMPILER": "$env{LLVM_ROOT}/bin/clang-cl.exe",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "BUILD_SHARED_LIBS": false,
-        "BUILD_TESTING": false
+        "BUILD_TESTING": false        
       },
       "condition": {
         "type": "equals",

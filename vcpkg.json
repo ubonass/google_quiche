@@ -35,7 +35,7 @@
     },
     { 
         "name": "protobuf", 
-        "version": "3.19.4"
+        "version": "3.21.2"
     },
     { 
         "name": "double-conversion", 

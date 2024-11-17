@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 if (NOT QUICHE_ROOT)
   message(SEND_ERROR "not define QUICHE_ROOT" )
@@ -703,7 +703,7 @@ list(APPEND quiche_tool_support_hdrs
   ${QUICHE_ROOT}/quiche/common/platform/api/quiche_default_proof_providers.h
   ${QUICHE_ROOT}/quiche/common/platform/api/quiche_file_utils.h
   ${QUICHE_ROOT}/quiche/common/platform/api/quiche_system_event_loop.h
-  ${QUICHE_ROOT}/quiche/quic/core/quic_trace_visitor.h
+  #${QUICHE_ROOT}/quiche/quic/core/quic_trace_visitor.h
   ${QUICHE_ROOT}/quiche/quic/platform/api/quic_default_proof_providers.h
   ${QUICHE_ROOT}/quiche/quic/tools/connect_server_backend.h
   ${QUICHE_ROOT}/quiche/quic/tools/connect_tunnel.h
@@ -733,7 +733,7 @@ list(APPEND quiche_tool_support_hdrs
 
 list(APPEND quiche_tool_support_srcs
   ${QUICHE_ROOT}/quiche/common/platform/api/quiche_file_utils.cc
-  ${QUICHE_ROOT}/quiche/quic/core/quic_trace_visitor.cc
+  #${QUICHE_ROOT}/quiche/quic/core/quic_trace_visitor.cc
   ${QUICHE_ROOT}/quiche/quic/tools/connect_server_backend.cc
   ${QUICHE_ROOT}/quiche/quic/tools/connect_tunnel.cc
   ${QUICHE_ROOT}/quiche/quic/tools/connect_udp_tunnel.cc
@@ -1500,7 +1500,7 @@ list(APPEND default_platform_impl_srcs
 )
 
 list(APPEND default_platform_impl_tool_support_hdrs
-  ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_command_line_flags_impl.h
+  # ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_command_line_flags_impl.h
   ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_default_proof_providers_impl.h
   ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_file_utils_impl.h
   ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_stream_buffer_allocator_impl.h
@@ -1508,7 +1508,7 @@ list(APPEND default_platform_impl_tool_support_hdrs
 )
 
 list(APPEND default_platform_impl_tool_support_srcs
-  ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_command_line_flags_impl.cc
+  # ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_command_line_flags_impl.cc
   ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_default_proof_providers_impl.cc
   ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_file_utils_impl.cc
 )
