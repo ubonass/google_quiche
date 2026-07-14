@@ -115,3 +115,34 @@ include(google_url)
 # The module owns protobuf generation, source selection, dependencies and all
 # platform-specific settings for the default QUIC transport target.
 include(quiche_core)
+
+# HTTP/3 and QPACK can be built independently. WebTransport and MoQT imply
+# this dependency even when the standalone H3 feature switch is disabled.
+option(GOOGLE_QUICHE_BUILD_H3
+  "Build HTTP/3 and QPACK support" ON)
+
+# WebTransport-over-HTTP/3 and its test server are optional because they pull
+# in the substantially larger HTTP/3/QPACK and command-line tool stack.
+option(GOOGLE_QUICHE_BUILD_WEBTRANSPORT
+  "Build WebTransport support and the WebTransport test server" ON)
+
+option(GOOGLE_QUICHE_BUILD_MOQT
+  "Build MoQT support and the MoQT chat client/server demos" ON)
+
+option(GOOGLE_QUICHE_BUILD_DEMOS
+  "Build demo executables for enabled features" ON)
+
+# MoQT is transported over WebTransport. Build the shared protocol layer when
+# either public feature is requested, without implicitly enabling the separate
+# WebTransport test-server demo.
+if(GOOGLE_QUICHE_BUILD_H3 OR GOOGLE_QUICHE_BUILD_WEBTRANSPORT OR GOOGLE_QUICHE_BUILD_MOQT)
+  include(quiche_h3)
+endif()
+
+if(GOOGLE_QUICHE_BUILD_WEBTRANSPORT OR GOOGLE_QUICHE_BUILD_MOQT)
+  include(quiche_webtransport)
+endif()
+
+if(GOOGLE_QUICHE_BUILD_MOQT)
+  include(quiche_moqt)
+endif()

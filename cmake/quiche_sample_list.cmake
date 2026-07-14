@@ -27,8 +27,9 @@ set(quiche_sample_masque_sources
 
 # MoQT sample implementations and executable entry points.
 # Dependencies: quiche_core_sources + quiche_h3_sources +
-# quiche_webtransport_sources + quiche_webtransport_h3_sources, plus the
-# required networking subset from quiche_sample_tool_sources. The *_bin.cc
+# quiche_webtransport_sources + quiche_webtransport_h3_sources +
+# quiche_moqt_sources, plus the required networking subset from
+# quiche_sample_tool_sources. The *_bin.cc
 # files are separate executables and must not be linked into one target.
 set(quiche_sample_moqt_sources
   ${QUICHE_ROOT}/quiche/quic/moqt/tools/chat_client.cc

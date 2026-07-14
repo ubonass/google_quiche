@@ -23,6 +23,9 @@ endif()
 #   quiche_h3_sources
 #       `-- base + core
 #
+#   quiche_masque_sources
+#       `-- base + core + h3 (POSIX networking implementation)
+#
 #   quiche_webtransport_sources
 #       `-- base + core
 #
@@ -289,28 +292,15 @@ set(quiche_h3_sources
   ${QUICHE_ROOT}/quiche/balsa/simple_buffer.cc
   ${QUICHE_ROOT}/quiche/balsa/standard_header_map.cc
   ${QUICHE_ROOT}/quiche/binary_http/binary_http_message.cc
-  ${QUICHE_ROOT}/quiche/common/masque/connect_ip_datagram_payload.cc
-  ${QUICHE_ROOT}/quiche/common/masque/connect_udp_datagram_payload.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/callback_visitor.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/chunked_buffer.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/event_forwarder.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/header_validator.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/http2_protocol.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/http2_util.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/mock_nghttp2_callbacks.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_adapter.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_callbacks.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_data_provider.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_session.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_test_utils.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_util.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/noop_header_validator.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_adapter.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_session.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_util.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/recording_http2_visitor.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/test_frame_sequence.cc
-  ${QUICHE_ROOT}/quiche/http2/adapter/test_utils.cc
   ${QUICHE_ROOT}/quiche/http2/adapter/window_manager.cc
   ${QUICHE_ROOT}/quiche/http2/core/array_output_buffer.cc
   ${QUICHE_ROOT}/quiche/http2/core/http2_constants.cc
@@ -411,6 +401,14 @@ set(quiche_h3_sources
   ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_send_stream.cc
   ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_static_table.cc
   ${QUICHE_ROOT}/quiche/quic/core/qpack/value_splitting_header_list.cc
+)
+
+# MASQUE is not part of the HTTP/3 transport library itself. Its current tool
+# implementation uses POSIX networking APIs (including netdb.h), so keep it in
+# a separate manifest for a future platform-specific MASQUE target.
+set(quiche_masque_sources
+  ${QUICHE_ROOT}/quiche/common/masque/connect_ip_datagram_payload.cc
+  ${QUICHE_ROOT}/quiche/common/masque/connect_udp_datagram_payload.cc
   ${QUICHE_ROOT}/quiche/quic/masque/masque_client.cc
   ${QUICHE_ROOT}/quiche/quic/masque/masque_client_session.cc
   ${QUICHE_ROOT}/quiche/quic/masque/masque_client_tools.cc

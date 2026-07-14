@@ -74,9 +74,9 @@ target_link_libraries(quiche_core
     absl::synchronization
     absl::time
 
-  PRIVATE
-    # QUIC client identity, hostname canonicalization and URL escaping use
-    # googleurl internally, but no googleurl type is exposed by core headers.
+  PUBLIC
+    # QUICHE's public platform adapter quiche_googleurl_impl.h includes
+    # url/gurl.h, so consumers need googleurl's include root as well.
     google_url::google_url
 )
 
