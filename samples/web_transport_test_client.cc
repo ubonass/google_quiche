@@ -30,6 +30,9 @@
 #include "quiche/quic/tools/quic_url.h"
 #include "quiche/web_transport/complete_buffer_visitor.h"
 #include "quiche/web_transport/web_transport.h"
+#include "samples/web_transport_client_adapter.h"
+#include "samples/web_transport_crypto_config.h"
+#include "samples/web_transport_echo_visitor.h"
 
 DEFINE_QUICHE_COMMAND_LINE_FLAG(
     bool,
@@ -49,6 +52,12 @@ DEFINE_QUICHE_COMMAND_LINE_FLAG(int32_t,
                                 count,
                                 10,
                                 "Number of echo operations to perform.");
+DEFINE_QUICHE_COMMAND_LINE_FLAG(
+    bool,
+    null_one_rtt_crypter,
+    false,
+    "Use NullEncrypter/NullDecrypter for 1-RTT packets. Both endpoints must "
+    "enable this unsafe local-debug option.");
 
 namespace {
 
@@ -168,13 +177,26 @@ int RunClient(const quic::QuicUrl& url, const std::string& message) {
   quic::QuicDefaultClock* clock = quic::QuicDefaultClock::Get();
   std::unique_ptr<quic::QuicEventLoop> event_loop =
       quic::GetDefaultEventLoop()->Create(clock);
-  quic::QuicDefaultClient client(peer_address, server_id,
-                                 quic::AllSupportedVersions(), event_loop.get(),
-                                 std::move(proof_verifier));
+  google_quiche::samples::WebTransportCryptoConfig crypto_config;
+  crypto_config.use_null_one_rtt_crypter =
+      quiche::GetQuicheCommandLineFlag(FLAGS_null_one_rtt_crypter);
+  if (crypto_config.use_null_one_rtt_crypter) {
+    std::cerr << "WARNING: 1-RTT Null Crypter is enabled. Application data "
+                 "is not confidential. 0-RTT is disabled.\n";
+  }
+  google_quiche::samples::WebTransportClientAdapter client(
+      peer_address, server_id, quic::AllSupportedVersions(), event_loop.get(),
+      std::move(proof_verifier), crypto_config);
   client.set_enable_web_transport(true);
 
-  if (!client.Initialize() || !client.Connect()) {
-    std::cerr << "Failed to establish the QUIC connection\n";
+  if (!client.Initialize()) {
+    std::cerr << "Failed to initialize the QUIC client\n";
+    return 1;
+  }
+  if (!client.Connect()) {
+    std::cerr << "Failed to establish the QUIC connection: "
+              << quic::QuicErrorCodeToString(client.session()->error()) << " "
+              << client.session()->error_details() << "\n";
     return 1;
   }
 
@@ -251,12 +273,26 @@ int RunClient(const quic::QuicUrl& url, const std::string& message) {
       return 1;
     }
     auto operation = std::make_shared<EchoOperation>();
+    const webtransport::StreamId stream_id = stream->GetStreamId();
+    const quic::QuicTime start_time = clock->Now();
     stream->SetVisitor(std::make_unique<webtransport::CompleteBufferVisitor>(
-        stream, message, [operation](std::string response) {
+        stream, message, [operation, stream_id, i, start_time, clock](
+                             std::string response) {
+          const double rtt_ms =
+              (clock->Now() - start_time).ToMicroseconds() / 1000.0;
+          std::cout << "[echo_receive] side=client index=" << (i + 1)
+                    << " stream_id=" << stream_id
+                    << " length=" << response.size() << " payload="
+                    << google_quiche::samples::FormatEchoPayload(response)
+                    << " rtt_ms=" << rtt_ms << "\n";
           operation->response = std::move(response);
           operation->complete = true;
         }));
     stream->visitor()->OnCanWrite();
+    std::cout << "[echo_send] side=client index=" << (i + 1)
+              << " stream_id=" << stream_id << " length=" << message.size()
+              << " payload="
+              << google_quiche::samples::FormatEchoPayload(message) << "\n";
 
     if (!quic::ProcessEventsUntil(
             event_loop.get(),
@@ -265,12 +301,19 @@ int RunClient(const quic::QuicUrl& url, const std::string& message) {
       return 1;
     }
     if (state->failed || operation->response != message) {
-      std::cerr << "Echo " << (i + 1) << " failed"
+      std::cerr << "[echo_verify] side=client index=" << (i + 1)
+                << " stream_id=" << stream_id << " verify=failed expected="
+                << google_quiche::samples::FormatEchoPayload(message)
+                << " actual=" << google_quiche::samples::FormatEchoPayload(
+                                      operation->response)
+                << "\nEcho " << (i + 1) << " failed"
                 << (state->error.empty() ? "" : ": " + state->error) << "\n";
       return 1;
     }
 
-    std::cout << "Echo " << (i + 1) << "/" << count
+    std::cout << "[echo_verify] side=client index=" << (i + 1)
+              << " stream_id=" << stream_id << " verify=ok\n"
+              << "Echo " << (i + 1) << "/" << count
               << " succeeded: " << operation->response << "\n";
     if (i + 1 < count && interval > quic::QuicTimeDelta::Zero()) {
       RunEventLoopFor(event_loop.get(), interval);

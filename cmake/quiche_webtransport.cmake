@@ -26,6 +26,13 @@ if(GOOGLE_QUICHE_BUILD_WEBTRANSPORT AND GOOGLE_QUICHE_BUILD_DEMOS)
     ${QUICHE_ROOT}/quiche/quic/tools/quic_simple_server_session.cc
     ${QUICHE_ROOT}/quiche/quic/tools/quic_simple_server_stream.cc
     ${QUICHE_ROOT}/quiche/quic/tools/web_transport_only_backend.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_crypto_config.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_dispatcher.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_echo_visitor.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_null_encrypter.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_null_decrypter.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_server_adapter.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_server_session.cc
     ${CMAKE_SOURCE_DIR}/samples/web_transport_test_server.cc
   )
   target_compile_features(web_transport_test_server PRIVATE cxx_std_17)
@@ -38,6 +45,12 @@ if(GOOGLE_QUICHE_BUILD_WEBTRANSPORT AND GOOGLE_QUICHE_BUILD_DEMOS)
   )
 
   add_executable(web_transport_test_client
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_client_adapter.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_client_session.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_crypto_config.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_echo_visitor.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_null_encrypter.cc
+    ${CMAKE_SOURCE_DIR}/samples/web_transport_null_decrypter.cc
     ${CMAKE_SOURCE_DIR}/samples/web_transport_test_client.cc
     ${QUICHE_ROOT}/quiche/quic/tools/quic_client_base.cc
     ${QUICHE_ROOT}/quiche/quic/tools/quic_client_default_network_helper.cc

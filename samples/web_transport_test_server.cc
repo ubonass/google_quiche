@@ -25,12 +25,21 @@
 #include "quiche/quic/tools/web_transport_only_backend.h"
 #include "quiche/quic/tools/web_transport_test_visitors.h"
 #include "quiche/web_transport/web_transport.h"
+#include "samples/web_transport_crypto_config.h"
+#include "samples/web_transport_echo_visitor.h"
+#include "samples/web_transport_server_adapter.h"
 
 DEFINE_QUICHE_COMMAND_LINE_FLAG(
     int32_t,
     port,
     6121,
     "The port the WebTransport server will listen on.");
+DEFINE_QUICHE_COMMAND_LINE_FLAG(
+    bool,
+    null_one_rtt_crypter,
+    false,
+    "Use NullEncrypter/NullDecrypter for 1-RTT packets. Both endpoints must "
+    "enable this unsafe local-debug option.");
 
 namespace quic {
 namespace {
@@ -44,7 +53,8 @@ absl::StatusOr<std::unique_ptr<webtransport::SessionVisitor>> ProcessRequest(
   }
 
   if (url.path() == "/webtransport/echo") {
-    return std::make_unique<EchoWebTransportSessionVisitor>(session);
+    return std::make_unique<google_quiche::samples::WebTransportEchoVisitor>(
+        session);
   }
   if (url.path() == "/webtransport/devious-baton") {
     int count = 1;
@@ -89,7 +99,16 @@ int Main(int argc, char** argv) {
       quiche::QuicheParseCommandLineFlags(usage, argc, argv);
 
   WebTransportOnlyBackend backend(ProcessRequest);
-  QuicServer server(quiche::CreateDefaultProofSource(), &backend);
+  google_quiche::samples::WebTransportCryptoConfig crypto_config;
+  crypto_config.use_null_one_rtt_crypter =
+      quiche::GetQuicheCommandLineFlag(FLAGS_null_one_rtt_crypter);
+  if (crypto_config.use_null_one_rtt_crypter) {
+    QUICHE_LOG(WARNING)
+        << "1-RTT Null Crypter is enabled. Application data is not "
+           "confidential. 0-RTT clients are not supported.";
+  }
+  google_quiche::samples::WebTransportServerAdapter server(
+      quiche::CreateDefaultProofSource(), &backend, crypto_config);
   quic::QuicSocketAddress addr(quic::QuicIpAddress::Any6(),
                                quiche::GetQuicheCommandLineFlag(FLAGS_port));
   if (!server.CreateUDPSocketAndListen(addr)) {
