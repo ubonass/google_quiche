@@ -1,54 +1,36 @@
-// Copyright 2023 The Chromium Authors. All rights reserved.
+// Copyright 2026 The rquic Authors.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "quiche_platform_impl/quiche_logging_impl.h"
 
+#include <atomic>
+
 #include "absl/flags/flag.h"
-#include "absl/log/absl_log.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log_sink_registry.h"
-#include "absl/strings/string_view.h"
 
-#ifndef ABSL_VLOG
-ABSL_FLAG(int, v, 0, "Show all QUICHE_VLOG(m) messages for m <= this.");
-#endif
+// Show all QUICHE_VLOG(m) messages for m <= this. The default -1 disables all
+// verbose logs, including QUICHE_VLOG(0). QUICHE_DVLOG uses the same verbosity
+// gate, then additionally follows debug-only DLOG semantics.
+ABSL_FLAG(int, v, -1, "Show all QUICHE_VLOG(m) messages for m <= this.");
 
-void QuicLogSink::Send(const absl::LogEntry& entry) {
-  switch (entry.log_severity()) {
-    case absl::LogSeverity::kInfo:
-      OnLogMessage(INFO, entry.text_message());
-      break;
-    case absl::LogSeverity::kWarning:
-      OnLogMessage(WARNING, entry.text_message());
-      break;
+namespace quic {
+namespace platform {
 
-    case absl::LogSeverity::kError:
-      OnLogMessage(ERROR, entry.text_message());
-      break;
+namespace {
 
-    case absl::LogSeverity::kFatal:
-      OnLogMessage(FATAL, entry.text_message());
-      break;
-    default:
-      OnLogMessage(INFO, entry.text_message());
-      break;
-  }
+// Temporary diagnostics default: preserve the previous compile-time enabled
+// behavior. SDK callers can change it at runtime.
+std::atomic_bool g_dlog_enabled{false};
+
+}  // namespace
+
+bool IsDLogEnabled() {
+  return g_dlog_enabled.load(std::memory_order_relaxed);
 }
 
-static absl::LogSink* g_log_sink_ = nullptr;
-
-void InitializeQuicLog(QuicLogSink* log_sink) {
-  absl::InitializeLog();
-  // absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
-  if (log_sink && !g_log_sink_) {
-    g_log_sink_ = log_sink;
-    absl::AddLogSink(log_sink);
-  }
+void SetDLogEnabled(bool enabled) {
+  g_dlog_enabled.store(enabled, std::memory_order_relaxed);
 }
 
-void DeInitializeQuicLog() {
-  if (g_log_sink_ != nullptr) {
-    absl::RemoveLogSink(g_log_sink_);
-  }
-}
+}  // namespace platform
+}  // namespace quic

@@ -4,10 +4,14 @@ if (NOT QUICHE_ROOT)
   message(SEND_ERROR "not define QUICHE_ROOT" )
 endif()
 
-if (MSVC)
-  set(PROTOBUF_PROTOC_EXECUTABLE protoc.exe)
+# Use the protoc executable built by cmake/protobuf.cmake. The fallbacks keep
+# this module usable when embedded by a parent project providing protobuf.
+if(TARGET protobuf::protoc)
+  set(QUICHE_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
+elseif(Protobuf_PROTOC_EXECUTABLE)
+  set(QUICHE_PROTOC_EXECUTABLE "${Protobuf_PROTOC_EXECUTABLE}")
 else()
-  set(PROTOBUF_PROTOC_EXECUTABLE protoc)
+  find_program(QUICHE_PROTOC_EXECUTABLE NAMES protoc protoc.exe REQUIRED)
 endif()
 
 #seting output target path
@@ -46,7 +50,7 @@ foreach(proto_file ${quiche_proto_files})
   add_custom_command(
       OUTPUT ${GENERATE_PROTO_TARGET_DIR}/${FIL_WE}.pb.cc
               ${GENERATE_PROTO_TARGET_DIR}/${FIL_WE}.pb.h
-      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} ${PROTO_FLAGS} ${proto_file}
+      COMMAND ${QUICHE_PROTOC_EXECUTABLE} ${PROTO_FLAGS} ${proto_file}
       DEPENDS ${proto_file}
       COMMENT Running C++ protocol buffer compiler on ${proto_file}
       VERBATIM
@@ -59,8 +63,10 @@ set_source_files_properties(
 )
 
 # Adding a custom target
-add_custom_target(generate_proto ALL
+add_custom_target(quiche_generate_proto ALL
   DEPENDS ${quiche_proto_srcs} ${quiche_proto_hdrs}
   COMMENT generate proto target
   VERBATIM
 )
+
+set_target_properties(quiche_generate_proto PROPERTIES FOLDER ${PROJECT_NAME})

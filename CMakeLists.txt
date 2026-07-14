@@ -1,15 +1,21 @@
+# CMake 3.20 provides the target and generator-expression behavior required by
+# the dependency modules in this project.
 cmake_minimum_required(VERSION 3.20)
 
+# Keep generated build artifacts out of the source tree. In-source builds make
+# submodule updates and source-list reviews unnecessarily difficult.
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR Prevented in-tree built. Please create a build directory outside of the source code and call cmake from there. Thank you.)
 endif()
-#
-# Project configuration
-#
-set(GOOGLE_QUICHE_VERSION_MAJOR 131)
+# -----------------------------------------------------------------------------
+# Project metadata
+# -----------------------------------------------------------------------------
+# The version follows the Chromium/QUICHE milestone and patch revision used by
+# this source tree.
+set(GOOGLE_QUICHE_VERSION_MAJOR 137)
 set(GOOGLE_QUICHE_VERSION_MINOR 0)
-set(GOOGLE_QUICHE_VERSION_PATCH 6778)
-set(GOOGLE_QUICHE_VERSION_PATCH2 45)
+set(GOOGLE_QUICHE_VERSION_PATCH 7151)
+set(GOOGLE_QUICHE_VERSION_PATCH2 119)
 
 project(
 	google_quiche
@@ -19,284 +25,93 @@ project(
 	LANGUAGES C CXX
 )
 
-message(STATUS "CMAKE_SYSTEM_NAME:"${CMAKE_SYSTEM_NAME})
-message(STATUS "CMAKE_SYSTEM_PROCESSOR:"${CMAKE_SYSTEM_PROCESSOR})
+# Enable logical solution folders for IDE generators such as Visual Studio.
+# Keep this at the top level so target grouping does not depend on an optional
+# subdirectory (base previously enabled this property as a side effect).
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-###############################################################################################################################
-set(CMAKE_CXX_STANDARD 20)
+# Select one Microsoft C/C++ runtime model when targeting the MSVC ABI. This
+# applies to both cl.exe and ClangCL; other platforms retain their toolchain's
+# native runtime selection and do not receive Windows-specific settings.
+if(MSVC)
+  option(GOOGLE_QUICHE_MSVC_STATIC_RUNTIME "Link the static Microsoft C/C++ runtime" ON)
+  if(GOOGLE_QUICHE_MSVC_STATIC_RUNTIME)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  else()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  endif()
+endif()
+
+# Report the selected target platform during configuration to make cross-build
+# and Visual Studio generator diagnostics easier to identify.
+message(STATUS "Target system: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+
+# -----------------------------------------------------------------------------
+# Global language and output settings
+# -----------------------------------------------------------------------------
+# The default base/googleurl/QUIC transport core subset supports C++17. Optional
+# MoQT sources require C++20 because they use a defaulted operator<=>.
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-endif()
+# Build static libraries with position-independent code so they can also be
+# linked into shared libraries by downstream consumers.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-if (MSVC)
-  if(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "debug")
-      add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
-      add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-      add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
-      add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
-  else()
-      add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-      add_compile_definitions(_CRT_NONSTDC_NO_DEFPRECATES)
-      add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
-      # add debug info for exefile and output pdb file
-      # set(CMAKE_BUILD_TYPE "RelWithDebInfo")
-      set(CMAKE_CXX_FLAGS_RELEASE "/Zi")
-      set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /INCREMENTAL:NO")
-  endif()
-  
-  add_compile_definitions(UNICODE)
-  add_compile_definitions(_UNICODE)
-  add_compile_definitions(NOMINMAX)
-  add_compile_definitions(NOGDI)
-  add_compile_definitions(WIN32_LEAN_AND_MEAN)
+# Source roots shared by the CMake modules below.
+set(GOOGLE_URL_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/google_url")
+set(QUICHE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/quiche")
+
+# Make project-owned dependency and source modules available through include().
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# QUICHE and its dependencies use C++ exceptions. Make the MSVC behavior
+# explicit instead of relying on the generator's implicit default.
+if(MSVC)
   add_compile_options(/EHsc)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-else()
-  set(CMAKE_C_FLAGS$ "${CMAKE_C_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
-  set(CMAKE_CXX_FLAGS$ "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
-  
-  add_compile_options(-fPIC)
-  add_compile_options(-Werror=shift-overflow)
-  add_compile_options(-Wno-unused-command-line-argument)
-  # set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g2 -ggdb -Wl,--no-keep-memory")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -Wall -g2 -ggdb")
-  
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s -O3 -Wall -g -Wno-error=unused-result") 
-  
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-command-line-argument")
-      if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti -Wno-error=implicit-function-declaration")  
-      endif()
-  endif() 
 endif()
-###############################################################################################################################
-set(QUICHE_ROOT ${CMAKE_SOURCE_DIR}/quiche)
-set(QUICHE_OVERRIDES ${CMAKE_SOURCE_DIR}/overrides)
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH})
-include(${CMAKE_TOOLCHAIN_FILE})
-include(quiche_list)
-include(quiche_proto)
-###############################################################################################################################
-find_package(OpenSSL REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(absl REQUIRED)
-find_package(protobuf REQUIRED)
-find_package(double-conversion REQUIRED)
-###############################################################################################################################
-include_directories(${QUICHE_ROOT})
-include_directories(${QUICHE_OVERRIDES})
-include_directories(${CMAKE_BINARY_DIR})
-###############################################################################################################################
-add_subdirectory(${CMAKE_SOURCE_DIR}/google_url)
-include_directories(${CMAKE_SOURCE_DIR}/google_url)
-###############################################################################################################################
-add_library(quiche_platform_impl
-  ${default_platform_impl_srcs}
-  ${default_platform_impl_hdrs}
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_flags_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_logging_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_mutex_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_stack_trace_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_time_utils_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_time_utils_impl.cc
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_url_utils_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_googleurl_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_export_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_logging_impl.cc
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_logging_impl.h
-  # --->build for quiche_core lib
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_iovec_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_bug_tracker_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_prefetch_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_mem_slice_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_containers_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_flag_utils_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_reference_counted_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_client_stats_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_testvalue_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_server_stats_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_lower_case_string_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_header_policy_impl.h
-)
 
-target_link_libraries(quiche_platform_impl PRIVATE
-  OpenSSL::Crypto
-  absl::core_headers
-  absl::log_severity
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::stacktrace
-  absl::symbolize
-  absl::flags
-  absl::absl_check
-  absl::absl_log
-  absl::strings
-  absl::str_format
-  absl::synchronization
-  absl::time
-  absl::optional
-  absl::span
-  google_url::google_url)
+# Provide the Abseil targets used directly by QUICHE and by the local base
+# library. Keeping this at the top level ensures all modules share one instance.
+include(absl)
 
-###############################################################################################################################
-add_library(quiche_core
-  ${quiche_core_srcs}
-  ${quiche_core_hdrs}
-  ${quiche_proto_srcs}
-  ${quiche_proto_hdrs} 
-)
+# Provide the shared fmt target before configuring the local base library.
+include(fmt)
 
-target_link_libraries(quiche_core PRIVATE
-  quiche_platform_impl
-  protobuf::libprotobuf-lite
-  OpenSSL::Crypto
-  OpenSSL::SSL
-  absl::algorithm
-  absl::core_headers
-  absl::nullability
-  absl::cleanup
-  absl::btree
-  absl::fixed_array
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::inlined_vector
-  absl::node_hash_map
-  absl::any_invocable
-  absl::function_ref
-  absl::hash
-  absl::memory
-  absl::bits
-  absl::int128
-  absl::status
-  absl::statusor
-  absl::strings
-  absl::str_format
-  absl::time
-  absl::optional
-  absl:ypes:span
-  absl::variant
-  ZLIB::ZLIB)
+# -----------------------------------------------------------------------------
+# Third-party dependencies built from source
+# -----------------------------------------------------------------------------
+# QUICHE uses BoringSSL-specific APIs such as openssl/aead.h and
+# openssl/bytestring.h, so a generic OpenSSL implementation is not sufficient.
+include(boringssl)
 
-###############################################################################################################################
-add_library(binary_http
-  ${binary_http_srcs}
-  ${binary_http_hdrs}
-)
+# Certificate compression in the QUIC crypto implementation requires Zlib.
+include(zlib)
 
-target_link_libraries(binary_http PRIVATE
-  quiche_core
-  absl::core_headers
-  absl::flat_hash_map
-  absl::status
-  absl::statusor
-  absl::strings)
-###############################################################################################################################
-add_library(oblivious_http
-  ${oblivious_http_srcs}
-  ${oblivious_http_hdrs}
-)
+# Fetch protobuf 30.2 and build protoc together with the lite runtime used by
+# QUICHE's generated transport messages.
+include(protobuf)
 
-target_link_libraries(oblivious_http PRIVATE
-  quiche_core
-  OpenSSL::Crypto
-  absl::core_headers
-  absl::btree
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::memory
-  absl::status
-  absl::statusor
-  absl::strings
-  absl::optional)
-###############################################################################################################################
-add_library(quiche_platform_impl_tools
-  ${default_platform_impl_tool_support_srcs}
-  ${default_platform_impl_tool_support_hdrs}
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_command_line_flags_impl.cc
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_command_line_flags_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_file_utils_impl.h
-  ${QUICHE_OVERRIDES}/quiche_platform_impl/quiche_default_proof_providers_impl.h
-)
+# -----------------------------------------------------------------------------
+# Local support libraries
+# -----------------------------------------------------------------------------
+# Build the local base library first because it also provides the shared Abseil
+# and fmt targets. Tests and samples are deliberately disabled for this build.
+# set(BASE_BUILD_TESTS OFF CACHE BOOL "Build base tests" FORCE)
+# set(BASE_BUILD_SAMPLES OFF CACHE BOOL "Build base samples" FORCE)
+# set(BASE_ABSL_EXTERNAL ON CACHE BOOL "Using Extern absl for base lib" FORCE)
+# set(BASE_FMT_EXTERNAL ON CACHE BOOL "Using Extern fmt for base lib" FORCE)
 
-target_link_libraries(quiche_platform_impl_tools PRIVATE
-  quiche_core
-  absl::flags
-  absl::flags_parse
-  absl::flags_usage
-  absl::absl_log
-  absl::strings
-  absl::optional)
-###############################################################################################################################
-add_library(balsa
-  ${balsa_srcs}
-  ${balsa_hdrs}
-)
+# add_subdirectory(base)
 
-target_link_libraries(balsa PRIVATE
-  quiche_core
-  absl::algorithm
-  absl::core_headers
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::inlined_vector
-  absl::memory
-  absl::strings
-  absl::str_format
-  absl::optional
-  absl::span
-  absl::variant)
-###############################################################################################################################
-add_library(quiche_tool_support
-  ${quiche_tool_support_srcs}
-  ${quiche_tool_support_hdrs}
-)
+# GURL is used by QUICHE URL, hostname and tool-facing APIs. The module builds
+# only the production googleurl sources required by QUICHE.
+include(google_url)
 
-target_link_libraries(quiche_tool_support PRIVATE
-  quiche_core
-  quiche_platform_impl
-  OpenSSL::Crypto
-  absl::core_headers
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::bind_front
-  absl::memory
-  absl::status
-  absl::statusor
-  absl::strings
-  absl::str_format
-  absl::optional
-  absl::span)
-################################################################################################################################
-add_library(io_tool_support
-  ${io_tool_support_srcs}
-  ${io_tool_support_hdrs}
-)
-
-target_link_libraries(io_tool_support PRIVATE
-  quiche_core
-  quiche_platform_impl
-  quiche_platform_impl_tools
-  quiche_tool_support
-  OpenSSL::Crypto
-  absl::algorithm
-  absl::core_headers
-  absl::cleanup
-  absl::btree
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::memory
-  absl::status
-  absl::statusor
-  absl::strings
-  absl::str_format
-  absl::optional
-  absl::span
-  absl::variant)
-###############################################################################################################################
+# -----------------------------------------------------------------------------
+# Default QUIC transport library
+# -----------------------------------------------------------------------------
+# The module owns protobuf generation, source selection, dependencies and all
+# platform-specific settings for the default QUIC transport target.
+include(quiche_core)

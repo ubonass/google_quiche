@@ -201,22 +201,15 @@ ninja
 - debug 
 
 ```bash
-cd out
-mkdir win-x64_debug && cd win-x64_debug  
-cmake -G "Visual Studio 17 2022" -T ClangCL ^
-	-DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake" ^
-	-DCMAKE_BUILD_TYPE:STRING=Debug ^
-	-DCMAKE_INSTALL_PREFIX=./install ../../
+cmake -S . -B out\win-x64 -G "Visual Studio 17 2022" -A x64 -T ClangCL
+cmake --build out\win-x64 --config Debug
 ```
 
 - release
 
 ```bash
-mkdir win-x64_release && cd win-x64_release    
-cmake -G "Visual Studio 17 2022" -T ClangCL ^
-	-DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake" ^
-	-DCMAKE_BUILD_TYPE:STRING=Release ^
-	-DCMAKE_INSTALL_PREFIX=./install ../../
+cmake -S . -B out\win-x64 -G "Visual Studio 17 2022" -A x64 -T ClangCL
+cmake --build out\win-x64 --config Release
 ```
 
 

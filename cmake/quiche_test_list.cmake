@@ -1,0 +1,558 @@
+include_guard(GLOBAL)
+
+if(NOT DEFINED QUICHE_ROOT)
+  message(FATAL_ERROR "QUICHE_ROOT must be set before including this module")
+endif()
+
+set(quiche_test_sources
+  ${QUICHE_ROOT}/quiche/balsa/balsa_frame_test.cc
+  ${QUICHE_ROOT}/quiche/balsa/balsa_headers_sequence_test.cc
+  ${QUICHE_ROOT}/quiche/balsa/balsa_headers_test.cc
+  ${QUICHE_ROOT}/quiche/balsa/header_properties_test.cc
+  ${QUICHE_ROOT}/quiche/balsa/simple_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/binary_http/binary_http_message_test.cc
+  ${QUICHE_ROOT}/quiche/blind_sign_auth/blind_sign_auth_test.cc
+  ${QUICHE_ROOT}/quiche/blind_sign_auth/cached_blind_sign_auth_test.cc
+  ${QUICHE_ROOT}/quiche/common/btree_scheduler_test.cc
+  ${QUICHE_ROOT}/quiche/common/bug_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/capsule_test.cc
+  ${QUICHE_ROOT}/quiche/common/http/http_header_block_test.cc
+  ${QUICHE_ROOT}/quiche/common/http/http_header_storage_test.cc
+  ${QUICHE_ROOT}/quiche/common/internet_checksum_test.cc
+  ${QUICHE_ROOT}/quiche/common/lifetime_tracking_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_test_loopback.cc
+  ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_test_impl.cc
+  ${QUICHE_ROOT}/quiche/common/platform/default/quiche_platform_impl/quiche_test_loopback_impl.cc
+  ${QUICHE_ROOT}/quiche/common/masque/connect_ip_datagram_payload_test.cc
+  ${QUICHE_ROOT}/quiche/common/masque/connect_udp_datagram_payload_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_file_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_hostname_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_lower_case_string_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_mem_slice_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_reference_counted_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_stack_trace_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_time_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/platform/api/quiche_url_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/print_elements_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_buffer_allocator_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_callbacks_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_circular_deque_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_data_reader_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_data_writer_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_endian_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_intrusive_list_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_ip_address_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_linked_hash_map_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_mem_slice_storage_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_random_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_simple_arena_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_socket_address_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_text_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/quiche_weak_ptr_test.cc
+  ${QUICHE_ROOT}/quiche/common/simple_buffer_allocator_test.cc
+  ${QUICHE_ROOT}/quiche/common/structured_headers_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/common/structured_headers_generated_test.cc
+  ${QUICHE_ROOT}/quiche/common/structured_headers_test.cc
+  ${QUICHE_ROOT}/quiche/common/test_tools/mock_streams_test.cc
+  ${QUICHE_ROOT}/quiche/common/test_tools/quiche_test_utils.cc
+  ${QUICHE_ROOT}/quiche/common/test_tools/quiche_test_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/vectorized_io_utils_test.cc
+  ${QUICHE_ROOT}/quiche/common/wire_serialization_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/adapter_impl_comparison_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/callback_visitor_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/chunked_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/event_forwarder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/header_validator_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_adapter_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_data_provider_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_session_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/nghttp2_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/noop_header_validator_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_adapter_metadata_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_adapter_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_session_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/oghttp2_util_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/recording_http2_visitor_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/test_utils_test.cc
+  ${QUICHE_ROOT}/quiche/http2/adapter/window_manager_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/array_output_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/http2_constants_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/http2_frame_decoder_adapter_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/http2/core/http2_structures_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/priority_write_scheduler_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/spdy_alt_svc_wire_format_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/spdy_frame_builder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/spdy_framer_test.cc
+  ${QUICHE_ROOT}/quiche/http2/core/spdy_protocol_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/decode_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/decode_http2_structures_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/http2_frame_decoder_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/http2_frame_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/http2_structure_decoder_remaining_payload_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/http2_structure_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/altsvc_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/continuation_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/data_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/goaway_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/headers_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/ping_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/priority_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/priority_update_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/push_promise_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/rst_stream_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/settings_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/unknown_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/decoder/payload_decoders/window_update_payload_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_block_collector_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_block_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_decoder_state_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_decoder_string_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_decoder_tables_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_entry_collector_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_entry_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_entry_type_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_string_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/decoder/hpack_whole_entry_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_decoder_adapter_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_entry_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_header_table_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_output_stream_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_round_trip_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/hpack_static_table_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/http2_hpack_constants_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/huffman/hpack_huffman_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/huffman/hpack_huffman_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/huffman/hpack_huffman_transcoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/varint/hpack_varint_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/varint/hpack_varint_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/hpack/varint/hpack_varint_round_trip_test.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/frame_decoder_state_test_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/frame_parts.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/frame_parts_collector.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/frame_parts_collector_listener.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_block_builder.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_block_builder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_block_collector.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_entry_collector.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_example.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_example_test.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/hpack_string_collector.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_constants_test_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_frame_builder.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_frame_builder_test.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_frame_decoder_listener_test_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_random.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_random_test.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_structure_decoder_test_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_structures_test_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/http2_trace_printer.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/mock_spdy_framer_visitor.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/payload_decoder_base_test_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/random_decoder_test_base.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/random_decoder_test_base_test.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/random_util.cc
+  ${QUICHE_ROOT}/quiche/http2/test_tools/spdy_test_utils.cc
+  ${QUICHE_ROOT}/quiche/oblivious_http/buffers/oblivious_http_integration_test.cc
+  ${QUICHE_ROOT}/quiche/oblivious_http/buffers/oblivious_http_request_test.cc
+  ${QUICHE_ROOT}/quiche/oblivious_http/buffers/oblivious_http_response_test.cc
+  ${QUICHE_ROOT}/quiche/oblivious_http/common/oblivious_http_header_key_config_test.cc
+  ${QUICHE_ROOT}/quiche/oblivious_http/oblivious_http_client_test.cc
+  ${QUICHE_ROOT}/quiche/oblivious_http/oblivious_http_gateway_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/batch_writer/quic_batch_writer_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/batch_writer/quic_batch_writer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/batch_writer/quic_gso_batch_writer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/batch_writer/quic_sendmmsg_batch_writer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/chlo_extractor_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/bandwidth_sampler_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/bbr2_simulator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/bbr_sender_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/cubic_bytes_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/general_loss_algorithm_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/hybrid_slow_start_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/pacing_sender_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/prague_sender_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/prr_sender_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/rtt_stats_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/send_algorithm_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/tcp_cubic_sender_bytes_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/uber_loss_algorithm_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/congestion_control/windowed_filter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/aes_128_gcm_12_decrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/aes_128_gcm_12_encrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/aes_128_gcm_decrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/aes_128_gcm_encrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/aes_256_gcm_decrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/aes_256_gcm_encrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/cert_compressor_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/certificate_util_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/certificate_view_der_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/certificate_view_pem_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/certificate_view_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/chacha20_poly1305_decrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/chacha20_poly1305_encrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/chacha20_poly1305_tls_decrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/chacha20_poly1305_tls_encrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/channel_id_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/client_proof_source_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/crypto_framer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/crypto_handshake_message_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/crypto_secret_boxer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/crypto_server_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/crypto_utils_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/curve25519_key_exchange_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/null_decrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/null_encrypter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/p256_key_exchange_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/proof_source_x509_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/quic_client_session_cache_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/quic_compressed_certs_cache_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/quic_crypto_client_config_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/quic_crypto_server_config_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/quic_hkdf_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/transport_parameters_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/crypto/web_transport_fingerprint_proof_verifier_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/deterministic_connection_id_generator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/frames/quic_frames_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/end_to_end_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/http_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/http_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/http_frames_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/metadata_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_header_list_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_headers_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_receive_control_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_send_control_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_server_session_base_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_spdy_client_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_spdy_client_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_spdy_server_stream_base_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_spdy_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_spdy_stream_body_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/quic_spdy_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/spdy_utils_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/http/web_transport_http3_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/io/event_loop_connecting_client_socket_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/io/quic_all_event_loops_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/io/quic_poll_event_loop_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/io/socket_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/legacy_quic_stream_id_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/packet_number_indexed_queue_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/fuzzer/qpack_decoder_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/fuzzer/qpack_decoder_stream_receiver_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/fuzzer/qpack_decoder_stream_sender_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/fuzzer/qpack_encoder_stream_receiver_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/fuzzer/qpack_encoder_stream_sender_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/fuzzer/qpack_round_trip_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/new_qpack_blocking_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_decoded_headers_accumulator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_decoder_stream_receiver_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_decoder_stream_sender_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_encoder_stream_receiver_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_encoder_stream_sender_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_header_table_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_index_conversions_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_instruction_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_instruction_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_receive_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_required_insert_count_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_round_trip_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_send_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/qpack_static_table_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/qpack/value_splitting_header_list_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_alarm_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_arena_scoped_ptr_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_bandwidth_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_blocked_writer_list_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_buffered_packet_store_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_chaos_protector_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_coalesced_packet_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_config_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_connection_alarms_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_connection_context_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_connection_id_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_connection_id_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_connection_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_control_frame_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_crypto_client_handshaker_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_crypto_client_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_crypto_server_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_crypto_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_data_writer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_datagram_queue_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_dispatcher_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_error_codes_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_flow_controller_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_framer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_generic_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_idle_network_detector_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_interval_deque_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_interval_set_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_interval_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_lru_cache_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_network_blackhole_detector_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_one_block_arena_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_packet_creator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_packet_number_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_packets_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_path_validator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_ping_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_received_packet_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_sent_packet_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_server_id_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_socket_address_coder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_stream_id_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_stream_priority_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_stream_send_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_stream_sequencer_buffer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_stream_sequencer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_sustained_bandwidth_recorder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_tag_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_time_accumulator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_time_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_time_wait_list_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_trace_visitor_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_udp_socket_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_unacked_packet_map_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_utils_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_version_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_versions_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/quic_write_blocked_list_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/tls_chlo_extractor_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/tls_client_handshaker_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/tls_server_handshaker_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/uber_quic_stream_id_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/uber_received_packet_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/core/web_transport_write_blocked_list_test.cc
+  ${QUICHE_ROOT}/quiche/quic/load_balancer/load_balancer_config_test.cc
+  ${QUICHE_ROOT}/quiche/quic/load_balancer/load_balancer_decoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/load_balancer/load_balancer_encoder_test.cc
+  ${QUICHE_ROOT}/quiche/quic/load_balancer/load_balancer_server_id_map_test.cc
+  ${QUICHE_ROOT}/quiche/quic/load_balancer/load_balancer_server_id_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_bitrate_adjuster_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_framer_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_integration_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_live_relay_queue_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_messages_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_outgoing_queue_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_parser_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_priority_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_probe_manager_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_subscribe_windows_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/moqt_track_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/test_tools/mock_moqt_session.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/test_tools/mock_moqt_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/test_tools/moqt_framer_utils.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/test_tools/moqt_simulator_harness.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/tools/moq_chat_end_to_end_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/tools/moq_chat_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/tools/moqt_end_to_end_test.cc
+  ${QUICHE_ROOT}/quiche/quic/moqt/tools/moqt_server_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/bonnet/icmp_reachable_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/bonnet/qbone_tunnel_silo_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/bonnet/tun_device_controller_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/bonnet/tun_device_packet_exchanger_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/bonnet/tun_device_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/platform/icmp_packet_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/platform/ip_range_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/platform/netlink_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/platform/rtnetlink_message_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/platform/tcp_packet_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/qbone_client_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/qbone_packet_exchanger_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/qbone_packet_processor_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/qbone_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/qbone/qbone_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/bad_packet_writer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/crypto_test_utils.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/crypto_test_utils_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/failing_proof_source.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/fake_proof_source.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/fake_proof_source_handle.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/first_flight.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/fuzzing/quic_framer_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/fuzzing/quic_framer_process_data_packet_fuzzer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/limited_mtu_test_writer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/mock_clock.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/mock_quic_dispatcher.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/mock_quic_session_visitor.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/mock_quic_spdy_client_stream.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/mock_quic_time_wait_list_manager.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/mock_random.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/packet_dropping_test_writer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/packet_reordering_writer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/qpack/qpack_decoder_test_utils.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/qpack/qpack_encoder_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/qpack/qpack_offline_decoder.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/qpack/qpack_test_utils.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_buffered_packet_store_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_coalesced_packet_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_config_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_connection_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_crypto_server_config_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_dispatcher_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_flow_controller_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_framer_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_mock_syscall_wrapper.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_packet_creator_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_path_validator_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_sent_packet_manager_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_server_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_session_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_spdy_session_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_spdy_stream_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_stream_id_manager_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_stream_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_stream_send_buffer_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_stream_sequencer_buffer_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_stream_sequencer_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_sustained_bandwidth_recorder_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_test_backend.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_test_client.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_test_server.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_test_utils.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_test_utils_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_time_wait_list_manager_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/quic_unacked_packet_map_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/rtt_stats_peer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/send_algorithm_test_utils.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/server_thread.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simple_data_producer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simple_quic_framer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simple_session_cache.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simple_session_notifier.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simple_session_notifier_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/actor.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/alarm_factory.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/link.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/packet_filter.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/port.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/queue.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/quic_endpoint.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/quic_endpoint_base.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/quic_endpoint_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/simulator.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/simulator_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/switch.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/test_harness.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/simulator/traffic_policer.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/test_certificates.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/test_ip_packets.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/test_ip_packets_test.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/test_ticket_crypter.cc
+  ${QUICHE_ROOT}/quiche/quic/test_tools/web_transport_resets_backend.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/connect_tunnel_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/connect_udp_tunnel_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_default_client_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_memory_cache_backend_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_server_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_simple_server_session_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_simple_server_stream_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_tcp_like_trace_converter_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/quic_url_test.cc
+  ${QUICHE_ROOT}/quiche/quic/tools/simple_ticket_crypter_test.cc
+  ${QUICHE_ROOT}/quiche/web_transport/encapsulated/encapsulated_web_transport_test.cc
+  ${QUICHE_ROOT}/quiche/web_transport/test_tools/in_memory_stream.cc
+  ${QUICHE_ROOT}/quiche/web_transport/test_tools/in_memory_stream_test.cc
+  ${QUICHE_ROOT}/quiche/web_transport/web_transport_headers_test.cc
+  ${QUICHE_ROOT}/quiche/web_transport/web_transport_priority_scheduler_test.cc
+)
+
+
+# POSIX-only event-loop and socket utility tests.
+if(NOT WIN32)
+  list(APPEND quiche_test_sources
+    ${QUICHE_ROOT}/quiche/quic/bindings/quic_libevent_test.cc
+    ${QUICHE_ROOT}/quiche/quic/core/quic_linux_socket_utils_test.cc
+  )
+endif()
+
+# Split the explicit test manifest into component-oriented lists. Keep
+# quiche_test_sources as the compatibility aggregate consumed by existing
+# targets, while allowing future test targets to link only their own component.
+function(_quiche_select_test_sources out_var pattern)
+  set(_selected ${quiche_test_sources})
+  list(FILTER _selected INCLUDE REGEX "${pattern}")
+  set(${out_var} ${_selected} PARENT_SCOPE)
+endfunction()
+
+# Base/common utilities and their platform adapters. MASQUE-specific common
+# helpers are removed below and classified with the MASQUE tests.
+_quiche_select_test_sources(quiche_test_base_sources
+  "/quiche/common/")
+
+# Standalone BlindSignAuth tests; these require the optional BlindSignAuth
+# implementation and its generated protobuf messages, not quiche_core alone.
+_quiche_select_test_sources(quiche_test_blind_sign_auth_sources
+  "/quiche/blind_sign_auth/")
+
+# HTTP/2, HTTP/3 support, Balsa, Binary HTTP and Oblivious HTTP tests.
+_quiche_select_test_sources(quiche_test_h3_sources
+  "/quiche/(balsa|binary_http|http2|oblivious_http)/")
+
+# Protocol/component-specific QUIC test groups.
+_quiche_select_test_sources(quiche_test_masque_sources
+  "/quiche/(common/masque|quic/masque)/")
+_quiche_select_test_sources(quiche_test_moqt_sources
+  "/quiche/quic/moqt/")
+_quiche_select_test_sources(quiche_test_qbone_sources
+  "/quiche/quic/qbone/")
+_quiche_select_test_sources(quiche_test_webtransport_sources
+  "/quiche/(web_transport/|quic/.*web_transport)")
+
+# Tests for reusable command-line/server/client tool implementations.
+_quiche_select_test_sources(quiche_test_tool_sources
+  "/quiche/quic/tools/")
+
+# Core QUIC transport, crypto, congestion control, I/O, load balancer and
+# quic/test_tools tests. Remove protocol and tool groups selected above.
+_quiche_select_test_sources(quiche_test_core_sources
+  "/quiche/quic/")
+list(REMOVE_ITEM quiche_test_core_sources
+  ${quiche_test_masque_sources}
+  ${quiche_test_moqt_sources}
+  ${quiche_test_qbone_sources}
+  ${quiche_test_webtransport_sources}
+  ${quiche_test_tool_sources}
+)
+list(REMOVE_ITEM quiche_test_base_sources ${quiche_test_masque_sources})
+
+# Rebuild the compatibility aggregate from the classified groups and fail at
+# configure time if a future source does not match any category.
+set(_quiche_unclassified_test_sources ${quiche_test_sources})
+list(REMOVE_ITEM _quiche_unclassified_test_sources
+  ${quiche_test_base_sources}
+  ${quiche_test_blind_sign_auth_sources}
+  ${quiche_test_h3_sources}
+  ${quiche_test_masque_sources}
+  ${quiche_test_moqt_sources}
+  ${quiche_test_qbone_sources}
+  ${quiche_test_webtransport_sources}
+  ${quiche_test_tool_sources}
+  ${quiche_test_core_sources}
+)
+if(_quiche_unclassified_test_sources)
+  message(FATAL_ERROR
+    "Unclassified QUICHE test sources: ${_quiche_unclassified_test_sources}")
+endif()
+
+set(quiche_test_sources
+  ${quiche_test_base_sources}
+  ${quiche_test_blind_sign_auth_sources}
+  ${quiche_test_core_sources}
+  ${quiche_test_h3_sources}
+  ${quiche_test_masque_sources}
+  ${quiche_test_moqt_sources}
+  ${quiche_test_qbone_sources}
+  ${quiche_test_webtransport_sources}
+  ${quiche_test_tool_sources}
+)
+
+unset(_quiche_unclassified_test_sources)
+unset(_selected)
